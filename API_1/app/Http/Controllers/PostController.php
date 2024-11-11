@@ -60,6 +60,7 @@ class PostController extends Controller
             $post = new Post();
             $post->title = $request->title;
             $post->description = $request->description;
+            $post->user_id=auth()->user()->id;
             $post->save();
 
             return response()->json([
@@ -115,7 +116,16 @@ class PostController extends Controller
             // $post = Post::find($post);
             $post->title = $request->title;
             $post->description = $request->description;
-            $post->update();
+            if($post->user_id==auth()->user()->id){
+               $post->user_id=auth()->user()->id;
+               $post->update();
+            }else{
+                return response()->json([
+                    "status_code" => 422,
+                    "status_message" => "You aren't the owner of this post",
+                ], 422); // Code de statut HTTP 200  
+            }
+            
 
             return response()->json([
                 "status_code" => 200,
@@ -138,7 +148,15 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
        try {
-        $post->delete();
+        if($post->user_id==auth()->user()->id){
+            $post->delete();
+         }else{
+             return response()->json([
+                 "status_code" => 422,
+                 "status_message" => "You aren't the owner of this post. You aren't authorized at the deleted",
+             ], 422); // Code de statut HTTP 200  
+         }
+        
         return response()->json([
             "status_code" => 200,
             "status_message" => "Post deleted successfully",
